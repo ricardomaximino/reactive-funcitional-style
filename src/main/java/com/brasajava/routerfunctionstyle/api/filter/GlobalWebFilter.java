@@ -1,4 +1,4 @@
-package com.brasajava.routerfunctionstyle.filter;
+package com.brasajava.routerfunctionstyle.api.filter;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;

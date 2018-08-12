@@ -1,4 +1,4 @@
-package com.brasajava.routerfunctionstyle.router;
+package com.brasajava.routerfunctionstyle.api.router;
 
 import static org.springframework.web.reactive.function.server.RequestPredicates.DELETE;
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
@@ -20,12 +20,12 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import com.brasajava.routerfunctionstyle.filter.GlobalHandlerFilterFunction;
-import com.brasajava.routerfunctionstyle.handler.LeadHandler;
+import com.brasajava.routerfunctionstyle.api.filter.GlobalHandlerFilterFunction;
+import com.brasajava.routerfunctionstyle.api.handler.PersonHandler;
 
 @Configuration
-public class LeadRouter {
-  @Autowired private LeadHandler handler;
+public class PersonRouter {
+  @Autowired private PersonHandler handler;
 
   @Bean
   public RouterFunction<ServerResponse> helloRouter() {
@@ -40,7 +40,7 @@ public class LeadRouter {
   @Bean
   public RouterFunction<ServerResponse> leadsRouter() {
     return nest(
-        path("/lead"),
+        path("/person"),
         route(GET("/{id}"), handler::findById)
             .filter(handlerFilter())
             .andRoute(GET("/"), handler::findAll)

@@ -1,6 +1,8 @@
-package com.brasajava.routerfunctionstyle.handler;
+package com.brasajava.routerfunctionstyle.api.handler;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -9,36 +11,42 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.brasajava.routerfunctionstyle.converter.LeadConverter;
-import com.brasajava.routerfunctionstyle.domain.LeadDTO;
-import com.brasajava.routerfunctionstyle.service.LeadService;
+import com.brasajava.routerfunctionstyle.api.converter.PersonConverter;
+import com.brasajava.routerfunctionstyle.api.dto.PersonDTO;
+import com.brasajava.routerfunctionstyle.service.PersonService;
 
-import lombok.extern.slf4j.Slf4j;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
 
 @Component
-@Slf4j
-public class LeadHandler {
+public class PersonHandler {
+	private static final Logger LOG = LoggerFactory.getLogger(PersonHandler.class);
 
   private static final String ID_PARAM = "id";
-  @Autowired private LeadService service;
-  @Autowired private LeadConverter converter;
+  private static final String X_USER = "X-User";
+ 
+  private PersonService service;
+  private PersonConverter converter;
+  
+  public PersonHandler(PersonService service, PersonConverter converter) {
+	  this.service = service;
+	  this.converter = converter;
+  }
 
   public Mono<ServerResponse> hello(ServerRequest request) {
-    log.debug("HELLO FROM HANDLER");
+    LOG.debug("HELLO FROM HANDLER");
     return ServerResponse.ok().body(BodyInserters.fromObject("Hello World"));
   }
 
   public Mono<ServerResponse> findAll(ServerRequest request) {
-    log.debug("FIND ALL FROM HANDLER");
+    LOG.debug("FIND ALL FROM HANDLER");
     return ServerResponse.ok()
         .contentType(MediaType.APPLICATION_JSON)
-        .body(service.findAllLeads().map(converter::toLeadDto), LeadDTO.class);
+        .body(service.findAllLeads().map(converter::toLeadDto), PersonDTO.class);
   }
 
   public Mono<ServerResponse> findById(ServerRequest request) {
-    log.debug("FIND BY ID FROM HANDLER");
+    LOG.debug("FIND BY ID FROM HANDLER");
     return service
         .findLeadById(request.pathVariable(ID_PARAM))
         .flatMap(
@@ -50,13 +58,13 @@ public class LeadHandler {
   }
 
   public Mono<ServerResponse> create(ServerRequest request) {
-    log.debug("CREATE FROM HANDLER");
+    LOG.debug("CREATE FROM HANDLER");
     return request
-        .bodyToMono(LeadDTO.class)
+        .bodyToMono(PersonDTO.class)
         .flatMap(
             dto -> {
               return service
-                  .create(converter.toLead(dto))
+                  .create(converter.toLead(dto), request.headers().header(X_USER).get(0))
                   .flatMap(
                       lead -> {
                         return ServerResponse.status(HttpStatus.CREATED)
@@ -66,13 +74,13 @@ public class LeadHandler {
   }
 
   public Mono<ServerResponse> update(ServerRequest request) {
-    log.debug("UPDATE FROM HANDLER");
+    LOG.debug("UPDATE FROM HANDLER");
     return request
-        .bodyToMono(LeadDTO.class)
+        .bodyToMono(PersonDTO.class)
         .flatMap(
             dto -> {
               return service
-                  .update(request.pathVariable(ID_PARAM), converter.toLead(dto))
+                  .update(request.pathVariable(ID_PARAM), converter.toLead(dto), request.headers().header(X_USER).get(0))
                   .flatMap(
                       lead -> {
                         return ServerResponse.status(HttpStatus.NO_CONTENT).build();
@@ -87,13 +95,13 @@ public class LeadHandler {
   }
 
   public Mono<ServerResponse> updateWithPatch(ServerRequest request) {
-    log.debug("UPDATE WITH PATCH FROM HANDLER");
+    LOG.debug("UPDATE WITH PATCH FROM HANDLER");
     return request
-        .bodyToMono(LeadDTO.class)
+        .bodyToMono(PersonDTO.class)
         .flatMap(
             dto -> {
               return service
-                  .update(request.pathVariable(ID_PARAM), converter.toLead(dto))
+                  .update(request.pathVariable(ID_PARAM), converter.toLead(dto), request.headers().header(X_USER).get(0))
                   .flatMap(
                       lead -> {
                         return ServerResponse.status(HttpStatus.NO_CONTENT).build();
@@ -103,9 +111,9 @@ public class LeadHandler {
   }
 
   public Mono<ServerResponse> deleteById(ServerRequest request) {
-    log.debug("DELETE FROM HANDLER");
+    LOG.debug("DELETE FROM HANDLER");
     return service
-        .deleteLeadById(request.pathVariable(ID_PARAM))
+        .deleteLeadById(request.pathVariable(ID_PARAM), request.headers().header(X_USER).get(0))
         .flatMap(d -> ServerResponse.noContent().build())
         .switchIfEmpty(ServerResponse.noContent().build());
   }

@@ -1,6 +1,45 @@
 server:
-  port: 9090
+  port: 8080
   
 spring:
-  main:
-    web-application-type: reactive
+  #main:
+    #web-application-type: reactive
+
+  # MONGO
+  data:
+    mongodb:
+      host: 192.168.99.100
+      port: 27017
+      database: person
+
+  # BINDER RABBIT
+  rabbitmq:
+    host: 192.168.99.100
+    port: 5672
+    username: guest
+    password: guest
+    
+    
+  cloud:
+    stream:
+      bindings:
+        
+        # SENDERS
+        send-person-created-event:
+          destination: send-person-created-event
+        
+        send-person-updated-event:
+          destination: send-person-updated-event
+        
+        send-person-deleted-event:
+          destination: send-person-deleted-event
+          
+          # RECEIVERS
+        listen-person-created-event:
+          destination: listen-person-created-event
+        
+        listen-person-updated-event:
+          destination: listen-person-updated-event
+        
+        listen-person-deleted-event:
+          destination: listen-person-deleted-event
