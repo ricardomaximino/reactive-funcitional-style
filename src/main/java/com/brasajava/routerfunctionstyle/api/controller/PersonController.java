@@ -1,5 +1,7 @@
 package com.brasajava.routerfunctionstyle.api.controller;
 
+import java.security.Principal;
+
 import javax.validation.Valid;
 
 import org.slf4j.Logger;
@@ -35,9 +37,9 @@ public class PersonController {
   @Autowired private PersonConverter personConverter;
 
   @GetMapping("/hello")
-  public Mono<String> hello() {
+  public Mono<String> hello(Mono<Principal> principal) {
     LOG.info("HELLO FROM CONTROLLER");
-    return Mono.just("Hello World from LeadController");
+    return principal.map(Principal::getName).map(name -> String.format("Hello, %s", name));
   }
 
   @GetMapping("/person")

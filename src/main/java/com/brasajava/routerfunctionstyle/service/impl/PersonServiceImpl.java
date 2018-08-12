@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.brasajava.routerfunctionstyle.domain.entity.Person;
@@ -42,6 +43,7 @@ private ApplicationEventPublisher eventPublisher;
   }
   
   @Override
+  @PreAuthorize("hasRole('ADMIN')")
   public Mono<Void> deleteLeadById(String id, String user) {
     return repository.findById(id).flatMap(person -> {
     	return repository.delete(person).doOnSuccess(v -> afterDelete(person, user));
