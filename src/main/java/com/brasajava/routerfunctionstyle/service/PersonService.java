@@ -11,12 +11,9 @@ public interface PersonService {
 
   Mono<Person> update(String id, Person person, String user);
 
-  Mono<Person> updateWithPatch(String id, Object objectPatch, String user);
+  Mono<Void> deleteById(String id, String user);
 
-  Mono<Void> deleteLeadById(String id, String user);
+  Flux<Person> findAll();
 
-  Flux<Person> findAllLeads();
-
-  Mono<Person> findLeadById(String id);
-
+  Mono<Person> findById(String id);
 }

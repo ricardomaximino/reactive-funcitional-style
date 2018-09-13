@@ -11,21 +11,21 @@ import com.brasajava.routerfunctionstyle.domain.entity.Person;
 @Component
 public class PersonConverter {
 
-  public PersonDTO toLeadDto(Person lead) {
+  public PersonDTO toPersonDto(Person person) {
     PersonDTO dto = new PersonDTO();
-    BeanUtils.copyProperties(lead, dto);
+    BeanUtils.copyProperties(person, dto);
     return dto;
   }
 
-  public Person toLead(PersonDTO dto) {
-    Person lead = new Person();
-    BeanUtils.copyProperties(dto, lead);
-    return lead;
+  public Person toPerson(PersonDTO dto) {
+    Person person = new Person();
+    BeanUtils.copyProperties(dto, person);
+    return person;
   }
 
-  public PersonIDDTO toLeadIdDto(Person lead) {
+  public PersonIDDTO toPersonIdDto(Person person) {
     PersonIDDTO id = new PersonIDDTO();
-    BeanUtils.copyProperties(lead, id);
+    BeanUtils.copyProperties(person, id);
     return id;
   }
 }

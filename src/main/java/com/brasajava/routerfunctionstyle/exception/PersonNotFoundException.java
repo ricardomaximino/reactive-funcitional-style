@@ -1,11 +1,11 @@
 package com.brasajava.routerfunctionstyle.exception;
 
-public class PersonNotFoundException extends RuntimeException {
+public class PersonNotFoundException extends ServiceException {
 
   private static final long serialVersionUID = 1L;
 
   public PersonNotFoundException() {
-    super("Lead Not Found");
+    super("Person Not Found");
   }
 
   public PersonNotFoundException(String message) {

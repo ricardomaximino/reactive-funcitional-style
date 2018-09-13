@@ -2,60 +2,32 @@ package com.brasajava.routerfunctionstyle.exception;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Map;
 
-import org.springframework.boot.autoconfigure.web.ResourceProperties;
-import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
-import org.springframework.boot.web.reactive.error.DefaultErrorAttributes;
-import org.springframework.boot.web.reactive.error.ErrorAttributes;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.codec.ServerCodecConfigurer;
-import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.server.RequestPredicates;
-import org.springframework.web.reactive.function.server.RouterFunction;
-import org.springframework.web.reactive.function.server.RouterFunctions;
-import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.reactive.handler.WebFluxResponseStatusExceptionHandler;
 
-import reactor.core.publisher.Mono;
+import com.brasajava.routerfunctionstyle.api.dto.ErrorMessageDTO;
 
-@Component
-@Order(-2)
-public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
+@ControllerAdvice
+public class GlobalExceptionHandler extends WebFluxResponseStatusExceptionHandler {
 
-  public GlobalExceptionHandler(
-      ServerCodecConfigurer serverCodecConfigurer, ApplicationContext applicationContext) {
-    super(new DefaultErrorAttributes(), new ResourceProperties(), applicationContext);
-    super.setMessageWriters(serverCodecConfigurer.getWriters());
-    super.setMessageReaders(serverCodecConfigurer.getReaders());
-  }
+  @ExceptionHandler(value = {ServiceException.class})
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  protected ResponseEntity<Object> handleException(RuntimeException throwable) {
 
-  @Override
-  protected RouterFunction<ServerResponse> getRoutingFunction(ErrorAttributes errorAttributes) {
-    return RouterFunctions.route(RequestPredicates.all(), this::renderErrorResponse);
-  }
+    HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+    ErrorMessageDTO body =
+        new ErrorMessageDTO(
+            LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+            httpStatus.value(),
+            httpStatus.getReasonPhrase(),
+            throwable.getClass().getName(),
+            throwable.getMessage());
 
-  private Mono<ServerResponse> renderErrorResponse(ServerRequest request) {
-    return ServerResponse.status(HttpStatus.BAD_REQUEST)
-        .contentType(MediaType.APPLICATION_JSON_UTF8)
-        .body(BodyInserters.fromObject(getErrorProperties(request)));
-  }
-
-  private Map<String, Object> getErrorProperties(ServerRequest request) {
-    Map<String, Object> errorPropertiesMap = getErrorAttributes(request, false);
-    Throwable exception = getError(request);
-
-    errorPropertiesMap.put("status", HttpStatus.BAD_REQUEST);
-    errorPropertiesMap.put(
-        "timestamp", LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-    errorPropertiesMap.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
-    errorPropertiesMap.put("exception", exception.getClass().getName());
-    errorPropertiesMap.put("message", exception.getMessage());
-    errorPropertiesMap.remove("path");
-    return errorPropertiesMap;
+    return new ResponseEntity<>(body, httpStatus);
   }
 }

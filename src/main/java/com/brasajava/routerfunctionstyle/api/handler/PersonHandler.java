@@ -42,18 +42,18 @@ public class PersonHandler {
     LOG.debug("FIND ALL FROM HANDLER");
     return ServerResponse.ok()
         .contentType(MediaType.APPLICATION_JSON)
-        .body(service.findAllLeads().map(converter::toLeadDto), PersonDTO.class);
+        .body(service.findAll().map(converter::toPersonDto), PersonDTO.class);
   }
 
   public Mono<ServerResponse> findById(ServerRequest request) {
     LOG.debug("FIND BY ID FROM HANDLER");
     return service
-        .findLeadById(request.pathVariable(ID_PARAM))
+        .findById(request.pathVariable(ID_PARAM))
         .flatMap(
             lead ->
                 ServerResponse.ok()
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(BodyInserters.fromObject(converter.toLeadDto(lead))))
+                    .body(BodyInserters.fromObject(converter.toPersonDto(lead))))
         .switchIfEmpty(ServerResponse.notFound().build());
   }
 
@@ -64,11 +64,11 @@ public class PersonHandler {
         .flatMap(
             dto -> {
               return service
-                  .create(converter.toLead(dto), request.headers().header(X_USER).get(0))
+                  .create(converter.toPerson(dto), request.headers().header(X_USER).get(0))
                   .flatMap(
                       lead -> {
                         return ServerResponse.status(HttpStatus.CREATED)
-                            .body(BodyInserters.fromObject(converter.toLeadIdDto(lead)));
+                            .body(BodyInserters.fromObject(converter.toPersonIdDto(lead)));
                       });
             });
   }
@@ -80,7 +80,7 @@ public class PersonHandler {
         .flatMap(
             dto -> {
               return service
-                  .update(request.pathVariable(ID_PARAM), converter.toLead(dto), request.headers().header(X_USER).get(0))
+                  .update(request.pathVariable(ID_PARAM), converter.toPerson(dto), request.headers().header(X_USER).get(0))
                   .flatMap(
                       lead -> {
                         return ServerResponse.status(HttpStatus.NO_CONTENT).build();
@@ -101,7 +101,7 @@ public class PersonHandler {
         .flatMap(
             dto -> {
               return service
-                  .update(request.pathVariable(ID_PARAM), converter.toLead(dto), request.headers().header(X_USER).get(0))
+                  .update(request.pathVariable(ID_PARAM), converter.toPerson(dto), request.headers().header(X_USER).get(0))
                   .flatMap(
                       lead -> {
                         return ServerResponse.status(HttpStatus.NO_CONTENT).build();
@@ -113,7 +113,7 @@ public class PersonHandler {
   public Mono<ServerResponse> deleteById(ServerRequest request) {
     LOG.debug("DELETE FROM HANDLER");
     return service
-        .deleteLeadById(request.pathVariable(ID_PARAM), request.headers().header(X_USER).get(0))
+        .deleteById(request.pathVariable(ID_PARAM), request.headers().header(X_USER).get(0))
         .flatMap(d -> ServerResponse.noContent().build())
         .switchIfEmpty(ServerResponse.noContent().build());
   }

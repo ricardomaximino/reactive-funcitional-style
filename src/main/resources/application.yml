@@ -8,13 +8,15 @@ spring:
   # MONGO
   data:
     mongodb:
-      host: 192.168.99.100
+      #host: 192.168.99.100
+      host: localhost
       port: 27017
       database: person
 
   # BINDER RABBIT
   rabbitmq:
-    host: 192.168.99.100
+    #host: 192.168.99.100
+    host: localhost
     port: 5672
     username: guest
     password: guest
