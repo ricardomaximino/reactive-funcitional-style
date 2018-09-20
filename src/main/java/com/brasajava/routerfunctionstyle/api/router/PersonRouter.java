@@ -20,7 +20,7 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import com.brasajava.routerfunctionstyle.api.filter.GlobalHandlerFilterFunction;
+import com.brasajava.routerfunctionstyle.api.filter.CheckHeadersHandlerFilter;
 import com.brasajava.routerfunctionstyle.api.handler.PersonHandler;
 
 @Configuration
@@ -34,21 +34,34 @@ public class PersonRouter {
 
   @Bean
   public HandlerFilterFunction<ServerResponse, ServerResponse> handlerFilter() {
-    return new GlobalHandlerFilterFunction();
+    return new CheckHeadersHandlerFilter();
   }
 
+  // @formatter:off
+  /*
+   * Next find out how to configure a filter to all routers
+   */
   @Bean
   public RouterFunction<ServerResponse> leadsRouter() {
     return nest(
-        path("/person"),
-        route(GET("/{id}"), handler::findById)
-            .filter(handlerFilter())
-            .andRoute(GET("/"), handler::findAll)
-            .andRoute(POST("/").and(accept(MediaType.APPLICATION_JSON)), handler::create)
-            .andRoute(PUT("/{id}").and(accept(MediaType.APPLICATION_JSON)), handler::update)
-            .andRoute(
-                PATCH("/{id}").and(accept(MediaType.APPLICATION_JSON)), handler::updateWithPatch)
-            .andRoute(
-                DELETE("/{id}").and(accept(MediaType.APPLICATION_JSON)), handler::deleteById));
+            path("/functional/person"),
+            route(GET("/hello/{name}"), handler::helloClient)
+                .filter(handlerFilter())
+                .andRoute(GET("/hello"), handler::hello)
+                .andRoute(GET("/{id}"), handler::findById)
+                .andRoute(GET("/"), handler::findAll)
+                .andRoute(POST("/").and(accept(MediaType.APPLICATION_JSON)), handler::create)
+                .filter(handlerFilter())
+                .andRoute(PUT("/{id}").and(accept(MediaType.APPLICATION_JSON)), handler::update)
+                .filter(handlerFilter())
+                .andRoute(
+                    PATCH("/{id}").and(accept(MediaType.APPLICATION_JSON)),
+                    handler::updateWithPatch)
+                .filter(handlerFilter())
+                .andRoute(
+                    DELETE("/{id}").and(accept(MediaType.APPLICATION_JSON)), handler::deleteById))
+        .filter(handlerFilter());
   }
+  // @formatter:on
+
 }

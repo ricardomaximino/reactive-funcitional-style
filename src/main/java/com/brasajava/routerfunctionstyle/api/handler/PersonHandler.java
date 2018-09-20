@@ -1,41 +1,64 @@
 package com.brasajava.routerfunctionstyle.api.handler;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.brasajava.routerfunctionstyle.api.converter.PersonConverter;
 import com.brasajava.routerfunctionstyle.api.dto.PersonDTO;
+import com.brasajava.routerfunctionstyle.exception.ServiceException;
 import com.brasajava.routerfunctionstyle.service.PersonService;
 
 import reactor.core.Exceptions;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
 public class PersonHandler {
-	private static final Logger LOG = LoggerFactory.getLogger(PersonHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PersonHandler.class);
 
   private static final String ID_PARAM = "id";
   private static final String X_USER = "X-User";
- 
+  private static final String NAME = "name";
+
   private PersonService service;
   private PersonConverter converter;
-  
-  public PersonHandler(PersonService service, PersonConverter converter) {
-	  this.service = service;
-	  this.converter = converter;
+  private final WebClient webClient;
+
+  public PersonHandler(PersonService service, PersonConverter converter, WebClient webClient) {
+    this.service = service;
+    this.converter = converter;
+    this.webClient = webClient;
   }
 
   public Mono<ServerResponse> hello(ServerRequest request) {
     LOG.debug("HELLO FROM HANDLER");
     return ServerResponse.ok().body(BodyInserters.fromObject("Hello World"));
+  }
+
+  public Mono<ServerResponse> helloClient(ServerRequest request) {
+    LOG.debug("HELLO/{NAME} FROM HANDLER");
+    Flux<PersonDTO> fluxResponse =
+        webClient
+            .get()
+            .uri("/controller/person")
+            .header(X_USER, request.headers().header(X_USER).get(0))
+            .accept(MediaType.APPLICATION_JSON)
+            .retrieve()
+            .bodyToFlux(PersonDTO.class)
+            .filter(p -> p.getName().equalsIgnoreCase(request.pathVariable(NAME)))
+            .switchIfEmpty(
+                Mono.error(
+                    new ServiceException(
+                        "Person not found with name => " + request.pathVariable(NAME))));
+    return ServerResponse.ok().body(BodyInserters.fromPublisher(fluxResponse, PersonDTO.class));
   }
 
   public Mono<ServerResponse> findAll(ServerRequest request) {
@@ -80,7 +103,10 @@ public class PersonHandler {
         .flatMap(
             dto -> {
               return service
-                  .update(request.pathVariable(ID_PARAM), converter.toPerson(dto), request.headers().header(X_USER).get(0))
+                  .update(
+                      request.pathVariable(ID_PARAM),
+                      converter.toPerson(dto),
+                      request.headers().header(X_USER).get(0))
                   .flatMap(
                       lead -> {
                         return ServerResponse.status(HttpStatus.NO_CONTENT).build();
@@ -101,7 +127,10 @@ public class PersonHandler {
         .flatMap(
             dto -> {
               return service
-                  .update(request.pathVariable(ID_PARAM), converter.toPerson(dto), request.headers().header(X_USER).get(0))
+                  .update(
+                      request.pathVariable(ID_PARAM),
+                      converter.toPerson(dto),
+                      request.headers().header(X_USER).get(0))
                   .flatMap(
                       lead -> {
                         return ServerResponse.status(HttpStatus.NO_CONTENT).build();

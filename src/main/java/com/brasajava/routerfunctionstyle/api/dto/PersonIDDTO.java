@@ -1,29 +1,25 @@
 package com.brasajava.routerfunctionstyle.api.dto;
 
 public class PersonIDDTO {
-	private String id;
+  private String personId;
 
-	public PersonIDDTO() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
+  public PersonIDDTO() {}
 
-	public PersonIDDTO(String id) {
-		super();
-		this.id = id;
-	}
+  public PersonIDDTO(String personId) {
+    super();
+    this.personId = personId;
+  }
 
-	public String getId() {
-		return id;
-	}
+  public String getPersonId() {
+    return personId;
+  }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+  public void setPersonId(String personId) {
+    this.personId = personId;
+  }
 
-	@Override
-	public String toString() {
-		return "LeadIDDTO [id=" + id + "]";
-	}
-
+  @Override
+  public String toString() {
+    return "LeadIDDTO [personId=" + personId + "]";
+  }
 }

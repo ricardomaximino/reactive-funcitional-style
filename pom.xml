@@ -5,10 +5,10 @@
 
 	<groupId>com.brasajava</groupId>
 	<artifactId>router-function-style</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<packaging>jar</packaging>
 
-	<name>router-function-style</name>
+	<name>person</name>
 	<description>Demo project for Spring Boot</description>
 
 	<parent>
@@ -102,7 +102,6 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
+		<finalName>${name}-${version}</finalName>
 	</build>
-
-
 </project>

@@ -7,7 +7,6 @@ import com.brasajava.routerfunctionstyle.api.dto.PersonDTO;
 import com.brasajava.routerfunctionstyle.api.dto.PersonIDDTO;
 import com.brasajava.routerfunctionstyle.domain.entity.Person;
 
-
 @Component
 public class PersonConverter {
 
@@ -24,8 +23,8 @@ public class PersonConverter {
   }
 
   public PersonIDDTO toPersonIdDto(Person person) {
-    PersonIDDTO id = new PersonIDDTO();
-    BeanUtils.copyProperties(person, id);
-    return id;
+    PersonIDDTO personIDDTO = new PersonIDDTO();
+    personIDDTO.setPersonId(person.getId());
+    return personIDDTO;
   }
 }

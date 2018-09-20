@@ -22,12 +22,14 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.brasajava.routerfunctionstyle.api.converter.PersonConverter;
 import com.brasajava.routerfunctionstyle.api.dto.PersonDTO;
 import com.brasajava.routerfunctionstyle.api.dto.PersonIDDTO;
 import com.brasajava.routerfunctionstyle.exception.PersonPatchNotFoundFieldException;
 import com.brasajava.routerfunctionstyle.exception.PersonPatchNotFoundKeyOperationException;
+import com.brasajava.routerfunctionstyle.exception.ServiceException;
 import com.brasajava.routerfunctionstyle.service.PersonService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,18 +44,37 @@ public class PersonController {
   private PersonService service;
   private PersonConverter converter;
   private ObjectMapper objectMapper;
+  private WebClient webClient;
 
   public PersonController(
-      PersonService personService, PersonConverter personConverter, ObjectMapper objectMapper) {
+      PersonService personService,
+      PersonConverter personConverter,
+      ObjectMapper objectMapper,
+      WebClient webClient) {
     this.service = personService;
     this.converter = personConverter;
     this.objectMapper = objectMapper;
+    this.webClient = webClient;
   }
 
   @GetMapping("/hello")
   public Mono<String> hello() {
     LOG.info("HELLO FROM CONTROLLER");
     return Mono.just("Hello World from PersonController");
+  }
+
+  @GetMapping("/hello/client/{name}")
+  public Flux<PersonDTO> helloClient(
+      @PathVariable String name, @RequestHeader("X-User") String user) {
+    LOG.info("HELLO/{NAME} FROM CONTROLLER CLIENT");
+    return webClient
+        .get()
+        .uri("/functional/person")
+        .header("X-User", user)
+        .retrieve()
+        .bodyToFlux(PersonDTO.class)
+        .filter(p -> p.getName().equalsIgnoreCase(name))
+        .switchIfEmpty(Mono.error(new ServiceException("Not Found Person with name => " + name)));
   }
 
   @GetMapping

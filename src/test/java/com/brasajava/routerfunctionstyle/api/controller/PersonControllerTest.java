@@ -11,19 +11,25 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClient.RequestHeadersUriSpec;
 
 import com.brasajava.routerfunctionstyle.api.converter.PersonConverter;
 import com.brasajava.routerfunctionstyle.api.dto.PersonDTO;
@@ -41,7 +47,8 @@ import reactor.core.publisher.Mono;
 public class PersonControllerTest {
   @MockBean private PersonService service;
   @MockBean private PersonConverter converter;
-  @Autowired private WebTestClient webClient;
+  @Autowired private WebTestClient webTestClient;
+  @MockBean private WebClient webClient;
   @Autowired private ObjectMapper objectMapper;
   private final String baseUrl = "/controller/person/";
   private final String id = "123456789";
@@ -50,7 +57,7 @@ public class PersonControllerTest {
 
   @Test
   public void testHello() {
-    webClient
+    webTestClient
         .get()
         .uri(baseUrl + "/hello")
         .accept(MediaType.TEXT_PLAIN)
@@ -65,12 +72,58 @@ public class PersonControllerTest {
             });
   }
 
+  public void test() {
+    RequestHeadersUriSpec uri = Mockito.mock(RequestHeadersUriSpec.class);
+    ClientResponse response = Mockito.mock(ClientResponse.class);
+    RequestHeadersUriSpec obj = Mockito.mock(RequestHeadersUriSpec.class);
+    Mockito.when(webClient.get()).thenReturn(uri);
+    Mockito.when(uri.uri(Mockito.anyString())).thenReturn(obj);
+    Mockito.when(obj.exchange()).thenReturn(Mono.just(response));
+    Mockito.when(response.statusCode()).thenReturn(HttpStatus.OK);
+    Mockito.when(response.bodyToFlux(Mockito.eq(Object.class))).thenReturn(Flux.empty());
+  }
+
+  // @Test
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  public void testHelloClient() {
+    Flux<Object> fluxMock = Mockito.mock(Flux.class);
+    Flux<Object> resp = Flux.just(new PersonDTO("1", "Ricardo", "Moraes", "ricardo", "password"));
+
+    RequestHeadersUriSpec uri = Mockito.mock(RequestHeadersUriSpec.class);
+    WebClient.ResponseSpec response = Mockito.mock(WebClient.ResponseSpec.class);
+    Predicate<Object> predicate = Mockito.mock(Predicate.class);
+
+    when(predicate.test(any())).thenReturn(true);
+    when(webClient.get()).thenReturn(uri);
+    when(uri.uri(Mockito.anyString())).thenReturn(uri);
+    when(uri.header(anyString(), anyString())).thenReturn(uri);
+    when(uri.retrieve()).thenReturn(response);
+    when(response.bodyToFlux(Mockito.eq(Object.class))).thenReturn(resp);
+    when(fluxMock.filter(any())).thenCallRealMethod();
+
+    webTestClient
+        .get()
+        .uri(baseUrl + "/hello/client/ricardo")
+        .accept(MediaType.APPLICATION_JSON)
+        .header(X_USER_HEADER, user)
+        .exchange()
+        .expectStatus()
+        .isOk()
+        .expectBodyList(PersonDTO.class)
+        .consumeWith(
+            r -> {
+              // assertThat(response.getResponseBody()).isEqualTo("Hello World from
+              // PersonController");
+              System.out.println(r);
+            });
+  }
+
   @Test
   public void testGetAll() {
     when(service.findAll()).thenReturn(Flux.just(createPerson(), createPerson()));
     when(converter.toPersonDto(any())).thenReturn(createPersonDto());
 
-    webClient
+    webTestClient
         .get()
         .uri(baseUrl)
         .accept(MediaType.APPLICATION_JSON)
@@ -90,7 +143,7 @@ public class PersonControllerTest {
     when(service.findById(anyString())).thenReturn(Mono.just(createPerson()));
     when(converter.toPersonDto(any())).thenReturn(createPersonDto());
 
-    webClient
+    webTestClient
         .get()
         .uri(baseUrl + id)
         .accept(MediaType.APPLICATION_JSON)
@@ -110,7 +163,7 @@ public class PersonControllerTest {
     when(converter.toPerson(any())).thenReturn(createPerson());
     when(converter.toPersonIdDto(any())).thenReturn(createPersonIdDto());
 
-    webClient
+    webTestClient
         .post()
         .uri(baseUrl)
         .accept(MediaType.APPLICATION_JSON)
@@ -133,7 +186,7 @@ public class PersonControllerTest {
         .thenReturn(Mono.just(new Person("123456789", "name", "lastname", "username", "password")));
     when(converter.toPerson(any())).thenReturn(createPerson());
 
-    webClient
+    webTestClient
         .put()
         .uri(baseUrl + id)
         .accept(MediaType.APPLICATION_JSON)
@@ -157,7 +210,7 @@ public class PersonControllerTest {
     when(converter.toPersonDto(any())).thenReturn(createPersonDto());
     when(converter.toPerson(any())).thenReturn(createPerson());
 
-    webClient
+    webTestClient
         .patch()
         .uri(baseUrl + id)
         .accept(MediaType.APPLICATION_JSON)
@@ -180,7 +233,7 @@ public class PersonControllerTest {
     when(service.findById(anyString())).thenReturn(Mono.just(createPerson()));
     when(converter.toPersonDto(any())).thenReturn(createPersonDto());
     assertNotNull(objectMapper);
-    webClient
+    webTestClient
         .patch()
         .uri(baseUrl + id)
         .accept(MediaType.APPLICATION_JSON)
@@ -201,7 +254,7 @@ public class PersonControllerTest {
     when(service.findById(anyString())).thenReturn(Mono.just(createPerson()));
     when(converter.toPersonDto(any())).thenReturn(createPersonDto());
     assertNotNull(objectMapper);
-    webClient
+    webTestClient
         .patch()
         .uri(baseUrl + id)
         .accept(MediaType.APPLICATION_JSON)
@@ -222,7 +275,7 @@ public class PersonControllerTest {
     when(service.findById(anyString())).thenReturn(Mono.just(createPerson()));
     when(converter.toPersonDto(any())).thenReturn(createPersonDto());
     assertNotNull(objectMapper);
-    webClient
+    webTestClient
         .patch()
         .uri(baseUrl + id)
         .accept(MediaType.APPLICATION_JSON)
@@ -244,7 +297,7 @@ public class PersonControllerTest {
   public void testDeleteById() {
     when(service.deleteById(anyString(), anyString())).thenReturn(Mono.empty());
 
-    webClient
+    webTestClient
         .delete()
         .uri(baseUrl + id)
         .header(X_USER_HEADER, user)
@@ -343,4 +396,9 @@ class TestConfig {
   public ObjectMapper objectMapper() {
     return new ObjectMapper();
   }
+
+  //  @Bean
+  //  public WebClient webClient() {
+  //    return WebClient.create("http://localhost:8080");
+  //  }
 }
