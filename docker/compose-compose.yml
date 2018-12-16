@@ -17,8 +17,8 @@ services:
       context: ..
       dockerfile: ./docker/Dockerfile
       args:
-        - NAME=person
-        - VERSION=0.0.1
+        - PROJECT_NAME=person
+        - PROJECT_VERSION=0.0.1
     container_name: Person
     environment:
       - SPRING_PROFILES_ACTIVE=cloud
