@@ -1,7 +1,7 @@
 # from the root
 # docker build -f docker/Dockerfile -t person:local --build-arg NAME=person --build-arg VERSION=1.0.0
 # docker run -p 8083:8080 --name Person -e SPRING_PROFILES_ACTIVE=cloud person:local
-# docker-compose -f docker/docker-compose.yml up
+# docker-compose -f docker/docker-compose.yml up  
 
 version: '3.3'
 
