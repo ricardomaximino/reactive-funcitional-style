@@ -1,3 +1,3 @@
 # reactive-funcitional-style
 
-## testing ci/cd github hooks
+## testing ci/cd github hook
