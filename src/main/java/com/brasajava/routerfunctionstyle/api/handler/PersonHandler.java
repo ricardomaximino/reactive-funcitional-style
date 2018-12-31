@@ -40,7 +40,7 @@ public class PersonHandler {
 
   public Mono<ServerResponse> hello(ServerRequest request) {
     LOG.debug("HELLO FROM HANDLER");
-    return ServerResponse.ok().body(BodyInserters.fromObject("Hello World"));
+    return ServerResponse.ok().body(BodyInserters.fromObject("Hello World Jenkins"));
   }
 
   public Mono<ServerResponse> helloClient(ServerRequest request) {
