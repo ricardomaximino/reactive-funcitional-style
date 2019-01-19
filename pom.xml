@@ -102,6 +102,6 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
-		<finalName>${name}-${version}</finalName>
+		<finalName>${project.name}-${project.version}</finalName>
 	</build>
 </project>

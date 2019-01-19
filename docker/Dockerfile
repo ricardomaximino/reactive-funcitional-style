@@ -15,11 +15,11 @@ RUN addgroup brasajava \
 USER brasajava
 
 # Required build arguments
-ARG NAME
-ARG VERSION
+ARG PROJECT_NAME
+ARG PROJECT_VERSION
 
 # Set environment variables
-ENV ARTIFACT_NAME=$NAME \
+ENV ARTIFACT_NAME=$PROJECT_NAME \
     SERVER_PORT=8080 \
     SPRING_PROFILES_ACTIVE=cloud \
     JAVA_TOOL_OPTIONS=-Duser.timezone="Europe/Madrid" \
@@ -29,7 +29,8 @@ ENV ARTIFACT_NAME=$NAME \
 EXPOSE ${SERVER_PORT} ${MANAGEMENT_PORT}
 
 #Add EXECUTABLE JAR
-COPY target/$NAME-$VERSION.jar $NAME.jar
+RUN echo target/$PROJECT_NAME-$PROJECT_VERSION.jar
+COPY target/$PROJECT_NAME-$PROJECT_VERSION.jar /$PROJECT_NAME.jar
 
 #Add external file
 #ADD path/file file
