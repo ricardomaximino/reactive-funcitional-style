@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 
 import com.brasajava.routerfunctionstyle.domain.entity.Person;
 import com.brasajava.routerfunctionstyle.domain.repository.PersonRepository;
-import com.brasajava.routerfunctionstyle.message.model.Event;
+import com.brasajava.routerfunctionstyle.message.model.CreatePersonEvent;
+import com.brasajava.routerfunctionstyle.message.model.DeletePersonEvent;
+import com.brasajava.routerfunctionstyle.message.model.UpdatePersonEvent;
 import com.brasajava.routerfunctionstyle.service.PersonService;
 
 import reactor.core.publisher.Flux;
@@ -62,22 +64,24 @@ public class PersonServiceImpl implements PersonService {
   }
 
   private Person onCreate(Person person, String user) {
-    person.create(createEvent(Event.CREATED_EVENT, person.getId(), user));
+    person.create(
+        new CreatePersonEvent(
+            UUID.randomUUID().toString(), person.getId(), user, new Date().getTime(), person));
     return person;
   }
 
   private Person onUpdate(Person personDB, Person person, String user) {
     person.setId(personDB.getId());
-    person.update(createEvent(Event.UPDATED_EVENT, person.getId(), user));
+    person.update(
+        new UpdatePersonEvent(
+            UUID.randomUUID().toString(), person.getId(), user, new Date().getTime(), person));
     return person;
   }
 
   private void afterDelete(Person person, String user) {
-    eventPublisher.publishEvent(createEvent(Event.DELETED_EVENT, person.getId(), user));
+    eventPublisher.publishEvent(
+        new DeletePersonEvent(
+            UUID.randomUUID().toString(), person.getId(), user, new Date().getTime(), person));
     person = null;
-  }
-
-  private Event createEvent(String type, String key, String user) {
-    return new Event(UUID.randomUUID().toString(), type, key, user, new Date().getTime());
   }
 }

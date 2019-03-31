@@ -1,8 +1,10 @@
-mongo:
-  host: localhost
-  
 rabbit:
-  host: localhost
+  addresses: amqp://pnujzvih:OyYY_Nva7Sm0Rd_tW9XLmFelfKPoq7e_@bulldog.rmq.cloudamqp.com/pnujzvih
+  username: pnujzvih
+  password: OyYY_Nva7Sm0Rd_tW9XLmFelfKPoq7e_
+  
+mongo:
+  uri: mongodb+srv://brasajava:brasajava@cluster0-lmjzd.mongodb.net/test?retryWrites=true
   
 server:
   port: 8080
@@ -14,40 +16,46 @@ spring:
   # MONGO
   data:
     mongodb:
+      uri: ${mongo.uri}
       #host: 192.168.99.100
-      host: ${mongo.host}
-      port: 27017
-      database: person
+      #host: ${mongo.host}
+      #port: 27017
+      #database: person
 
-  # BINDER RABBIT
+    
+ # RABBIT
   rabbitmq:
-    #host: 192.168.99.100
-    host: ${rabbit.host}
-    port: 5672
-    username: guest
-    password: guest
-    
-    
-  cloud:
-    stream:
+    username: ${rabbit.username}
+    password: ${rabbit.password}
+    addresses: ${rabbit.addresses}
+  cloud: 
+    stream: 
       bindings:
-        
-        # SENDERS
-        send-person-created-event:
-          destination: send-person-created-event
-        
-        send-person-updated-event:
-          destination: send-person-updated-event
-        
-        send-person-deleted-event:
-          destination: send-person-deleted-event
+      
+        # DEFAULT
+        defauld:
+          content-type: application/json
+
+          # PRODUCER
+          producer:
+            required-groups:
+            -  listener
+            
+        # PROSPECT SENDER    
+        output: 
+          destination: brasajava.tx
           
-          # RECEIVERS
-        listen-person-created-event:
-          destination: listen-person-created-event
-        
-        listen-person-updated-event:
-          destination: listen-person-updated-event
-        
-        listen-person-deleted-event:
-          destination: listen-person-deleted-event
+        # CONSENT REVOKED LISTENER
+        input:
+          destination: brasajava.tx
+          group: brasajava.person
+          
+      rabbit:
+        bindings:
+          output:
+            producer:
+              routing-key-expression: headers.routingKey
+          input:
+            consumer:
+              queueNameGroupOnly: true
+              bindingRoutingKey: 'brasajava.user.search.request'
